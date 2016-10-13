@@ -24,7 +24,7 @@ module.exports = (config) => {
 
     var staticman = new Staticman(options, config)
 
-    staticman.setConfig(createConfigObject(res.locals.apiVersion))
+    staticman.setConfig(createConfigObject(req.params.version || res.locals.apiVersion))
     staticman.setIp(req.headers['x-forwarded-for'] || req.connection.remoteAddress)
     staticman.setUserAgent(req.headers['user-agent'])
 

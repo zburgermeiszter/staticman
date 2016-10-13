@@ -3,6 +3,9 @@ var express = require('express')
 var ExpressBrute = require('express-brute')
 var GithubWebHook = require('express-github-webhook')
 var objectPath = require('object-path')
+var isLambda = require('is-lambda')
+
+var lambdaHandler = require('./lambda');
 
 // ------------------------------------
 // Config
@@ -83,22 +86,61 @@ var requireParams = (params) => {
   }
 }
 
-// Route: connect
-server.get('/v:version/connect/:username/:repository',
-           checkApiVersion,
-           bruteforce.prevent,
-           require('./controllers/connect')(config))
+function initExpress() {
+  // Route: connect
+  server.get('/v:version/connect/:username/:repository',
+      checkApiVersion,
+      bruteforce.prevent,
+      require('./congtrollers/connect')(config))
 
 // Route: process
-server.post('/v:version/entry/:username/:repository/:branch',
-            checkApiVersion,
-            bruteforce.prevent,
-            requireParams(['fields']),
-            require('./controllers/process')(config))
+  server.post('/v:version/entry/:username/:repository/:branch',
+      checkApiVersion,
+      bruteforce.prevent,
+      requireParams(['fields']),
+      require('./controllers/process')(config))
 
 // GitHub webhook route
-webhookHandler.on('pull_request', require('./controllers/handlePR')(config))
+  webhookHandler.on('pull_request', require('./controllers/handlePR')(config))
 
-server.listen(config.port, function () {
-  console.log('[Staticman] Server listening on port', config.port)
-})
+  server.listen(config.port, function () {
+    console.log('[Staticman] Server listening on port', config.port);
+  })
+}
+
+function initLambda() {
+  console.log("LAMBDA");
+  exports.processComment = lambdaHandler.processComment(config);
+  /*
+    lambdaHandler.processComment(config)(JSON.parse(JSON.stringify(
+      {
+        "headers": {
+          "x-forwarded-for": "127.0.0.1",
+          "user-agent": "Lambda"
+        },
+        "body": {
+          "fields": {
+            "name": "Node",
+            "email": "node@node.com",
+            "comment": "Jbibjdfkb"
+          },
+          "options": {
+            "post-slug": "this-is-a-slug"
+          }
+        },
+        "params": {
+          "version": "1",
+          "username": "zburgermeiszter",
+          "repository": "staticman-test",
+          "branch": "master"
+        }
+      }
+    )));
+  */
+}
+
+if (isLambda) {
+  initLambda();
+} else {
+  initExpress();
+}

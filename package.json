@@ -24,8 +24,10 @@
     "express-brute": "^0.6.0",
     "express-github-webhook": "^1.0.5",
     "github": "^2.4.0",
+    "is-lambda": "^1.0.0",
     "js-yaml": "^3.6.1",
     "md5": "^2.1.0",
+    "node-mocks-http": "^1.5.4",
     "object-path": "^0.11.1",
     "sha1": "^1.1.1",
     "universal-analytics": "^0.4.2"
